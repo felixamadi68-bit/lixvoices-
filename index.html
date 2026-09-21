@@ -1,625 +1,212 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <title>Lixvoices - AI Voice Studio</title>
 
-    <meta
-        name="description"
-        content="VoxForge - Modern text-to-speech studio with up to 2,000 voices and a 3,000-word generation limit."
-    >
+    <meta name="description"
+          content="Lixvoices is a modern voice studio for turning text into natural speech directly in your browser.">
 
-    <title>VoxForge TTS Studio</title>
-
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
+    <link rel="stylesheet" href="style.css">
 </head>
-
 
 <body>
 
-    <!-- =========================
-         TOP NAVIGATION
-    ========================== -->
-
-    <header class="topbar">
-
-        <a
-            href="#"
-            class="brand"
-        >
-
-            <span class="brand-mark">
-                V
-            </span>
-
-            <span>
-                VoxForge
-            </span>
-
-        </a>
-
-
-        <div class="top-actions">
-
-            <span class="limit-pill">
-                3,000 words / generation
-            </span>
-
-
-            <button
-                id="themeBtn"
-                class="icon-btn"
-                title="Toggle theme"
-                aria-label="Toggle theme"
-            >
-                ☼
-            </button>
-
+    <header class="navbar">
+        <div class="brand">
+            <div class="logo">V</div>
+            <span>Lixvoices</span>
         </div>
 
+        <button id="themeBtn" class="theme-btn" aria-label="Change theme">
+            ☼
+        </button>
     </header>
 
 
-
-    <!-- =========================
-         MAIN CONTENT
-    ========================== -->
-
     <main class="container">
 
-
-        <!-- HERO -->
-
         <section class="hero">
+            <p class="eyebrow">AI-STYLE VOICE STUDIO</p>
 
-            <div>
+            <h1>
+                Turn your words into
+                <span>natural speech.</span>
+            </h1>
 
-                <p class="eyebrow">
-                    AI-STYLE VOICE STUDIO
-                </p>
-
-
-                <h1>
-                    Turn your words into
-                    <span>
-                        natural speech.
-                    </span>
-                </h1>
+            <p class="subtitle">
+                Write your script, choose a voice, adjust the sound
+                and generate speech directly in your browser.
+            </p>
+        </section>
 
 
-                <p class="hero-copy">
+        <section class="stats">
 
-                    Write your script, choose a voice,
-                    adjust the sound and generate speech
-                    directly in your browser.
-
-                </p>
-
+            <div class="stat-card">
+                <strong id="voiceCount">0</strong>
+                <span>voices available</span>
             </div>
 
-
-
-            <div class="hero-stats">
-
-                <div>
-
-                    <strong id="voiceCount">
-                        0
-                    </strong>
-
-                    <span>
-                        voices available
-                    </span>
-
-                </div>
-
-
-                <div>
-
-                    <strong>
-                        3,000
-                    </strong>
-
-                    <span>
-                        word limit
-                    </span>
-
-                </div>
-
+            <div class="stat-card">
+                <strong>3,000</strong>
+                <span>word limit</span>
             </div>
 
         </section>
 
 
+        <section class="studio-card">
 
-        <!-- =========================
-             MAIN WORKSPACE
-        ========================== -->
-
-        <section class="workspace">
-
-
-            <!-- =====================
-                 SCRIPT EDITOR
-            ====================== -->
-
-            <div class="panel editor-panel">
-
-                <div class="panel-heading">
-
-                    <div>
-
-                        <h2>
-                            Script
-                        </h2>
-
-                        <p>
-                            Paste or type up to 3,000 words.
-                        </p>
-
-                    </div>
-
-
-                    <div class="counter">
-
-                        <span id="wordCount">
-                            0
-                        </span>
-
-                        /
-                        3,000 words
-
-                    </div>
-
+            <div class="section-header">
+                <div>
+                    <h2>Script</h2>
+                    <p>Paste or type up to 3,000 words.</p>
                 </div>
 
-
-
-                <textarea
-                    id="textInput"
-                    maxlength="24000"
-                    placeholder="Type or paste your script here..."
-                ></textarea>
-
-
-
-                <div class="editor-footer">
-
-                    <div class="mini-actions">
-
-                        <button
-                            id="sampleBtn"
-                            class="ghost-btn"
-                        >
-                            Use sample
-                        </button>
-
-
-                        <button
-                            id="clearBtn"
-                            class="ghost-btn"
-                        >
-                            Clear
-                        </button>
-
-                    </div>
-
-
-                    <span id="charCount">
-                        0 characters
-                    </span>
-
-                </div>
-
-
-
-                <div
-                    id="limitWarning"
-                    class="warning hidden"
-                >
-
-                    Your script is over the
-                    3,000-word limit.
-                    Shorten it before generating speech.
-
-                </div>
-
+                <button id="clearBtn" class="clear-btn">
+                    Clear
+                </button>
             </div>
 
 
-
-            <!-- =====================
-                 VOICE SETTINGS
-            ====================== -->
-
-            <div class="panel settings-panel">
-
-                <div class="panel-heading">
-
-                    <div>
-
-                        <h2>
-                            Voice
-                        </h2>
-
-                        <p>
-                            Choose from voices detected on your device.
-                        </p>
-
-                    </div>
-
-                </div>
+            <div class="counter">
+                <span id="wordCount">0 / 3,000 words</span>
+                <span id="charCount">0 characters</span>
+            </div>
 
 
-
-                <label
-                    class="field-label"
-                    for="voiceSearch"
-                >
-
-                    Search voices
-
-                </label>
+            <textarea
+                id="script"
+                maxlength="20000"
+                placeholder="Type or paste your script here..."
+            >Welcome to Lixvoices, a modern text-to-speech studio designed for creators, students, developers, and storytellers. Choose a voice, adjust the speed and pitch, then generate a natural spoken preview directly in your browser.</textarea>
 
 
-                <input
-                    id="voiceSearch"
-                    class="text-field"
-                    type="search"
-                    placeholder="Search by name, language or accent"
-                >
+            <div class="controls">
 
+                <div class="control-group">
+                    <label for="voiceSelect">
+                        Voice
+                    </label>
 
-
-                <div class="voice-toolbar">
-
-                    <select
-                        id="languageFilter"
-                        class="select-field"
-                    >
-
-                        <option value="all">
-                            All languages
-                        </option>
-
+                    <select id="voiceSelect">
+                        <option>Loading voices...</option>
                     </select>
-
-
-
-                    <select
-                        id="genderFilter"
-                        class="select-field"
-                    >
-
-                        <option value="all">
-                            All voices
-                        </option>
-
-                        <option value="female">
-                            Female-style names
-                        </option>
-
-                        <option value="male">
-                            Male-style names
-                        </option>
-
-                    </select>
-
                 </div>
 
 
+                <div class="control-row">
 
-                <!-- VOICE LIST -->
-
-                <div
-                    id="voiceList"
-                    class="voice-list"
-                >
-
-                    <div class="empty-state">
-                        Loading available voices...
-                    </div>
-
-                </div>
-
-
-
-                <!-- VOICE CONTROLS -->
-
-                <div class="voice-options">
-
-
-                    <!-- SPEED -->
-
-                    <div class="range-row">
-
-                        <div>
-
-                            <span>
-                                Speed
-                            </span>
-
-                            <strong id="rateValue">
-                                1.0×
-                            </strong>
-
-                        </div>
-
+                    <div class="control-group">
+                        <label for="speed">
+                            Speed
+                            <span id="speedValue">1.0x</span>
+                        </label>
 
                         <input
-                            id="rate"
                             type="range"
+                            id="speed"
                             min="0.5"
                             max="2"
                             step="0.1"
                             value="1"
                         >
-
                     </div>
 
 
-
-                    <!-- PITCH -->
-
-                    <div class="range-row">
-
-                        <div>
-
-                            <span>
-                                Pitch
-                            </span>
-
-                            <strong id="pitchValue">
-                                1.0
-                            </strong>
-
-                        </div>
-
+                    <div class="control-group">
+                        <label for="pitch">
+                            Pitch
+                            <span id="pitchValue">1.0</span>
+                        </label>
 
                         <input
-                            id="pitch"
                             type="range"
+                            id="pitch"
                             min="0"
                             max="2"
                             step="0.1"
                             value="1"
                         >
-
-                    </div>
-
-
-
-                    <!-- VOLUME -->
-
-                    <div class="range-row">
-
-                        <div>
-
-                            <span>
-                                Volume
-                            </span>
-
-                            <strong id="volumeValue">
-                                100%
-                            </strong>
-
-                        </div>
-
-
-                        <input
-                            id="volume"
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.05"
-                            value="1"
-                        >
-
                     </div>
 
                 </div>
 
-            </div>
 
-        </section>
+                <div class="button-row">
 
+                    <button id="speakBtn" class="primary-btn">
+                        ▶ Generate Speech
+                    </button>
 
+                    <button id="pauseBtn" class="secondary-btn">
+                        ⏸ Pause
+                    </button>
 
-        <!-- =========================
-             AUDIO CONTROL BAR
-        ========================== -->
-
-        <section class="control-bar">
-
-
-            <div class="selected-voice">
-
-                <span class="status-dot">
-                </span>
-
-
-                <div>
-
-                    <small>
-                        Selected voice
-                    </small>
-
-
-                    <strong id="selectedVoice">
-                        Loading...
-                    </strong>
+                    <button id="stopBtn" class="secondary-btn">
+                        ■ Stop
+                    </button>
 
                 </div>
 
             </div>
 
 
-
-            <div class="main-controls">
-
-
-                <button
-                    id="previewBtn"
-                    class="secondary-btn"
-                >
-                    ▶ Preview
-                </button>
-
-
-                <button
-                    id="pauseBtn"
-                    class="secondary-btn"
-                >
-                    Ⅱ Pause
-                </button>
-
-
-                <button
-                    id="stopBtn"
-                    class="secondary-btn"
-                >
-                    ■ Stop
-                </button>
-
-
-                <button
-                    id="speakBtn"
-                    class="primary-btn"
-                >
-
-                    Generate speech
-
-                    <span>
-                        →
-                    </span>
-
-                </button>
-
+            <div id="status" class="status">
+                Ready to generate speech.
             </div>
 
         </section>
 
 
+        <section class="info-section">
 
-        <!-- =========================
-             FEATURE CARDS
-        ========================== -->
+            <h2>How Lixvoices works</h2>
 
-        <section class="info-grid">
+            <div class="features">
 
+                <div class="feature">
+                    <div class="feature-icon">✍</div>
+                    <h3>Write</h3>
+                    <p>
+                        Enter your script or paste text into the editor.
+                    </p>
+                </div>
 
-            <article class="info-card">
+                <div class="feature">
+                    <div class="feature-icon">🎙</div>
+                    <h3>Choose</h3>
+                    <p>
+                        Select from the voices available on your device.
+                    </p>
+                </div>
 
-                <span class="info-icon">
-                    ◈
-                </span>
+                <div class="feature">
+                    <div class="feature-icon">🔊</div>
+                    <h3>Speak</h3>
+                    <p>
+                        Generate a spoken preview directly in your browser.
+                    </p>
+                </div>
 
-
-                <h3>
-                    Large voice library
-                </h3>
-
-
-                <p>
-
-                    The interface is built to support
-                    a catalog of up to 2,000 voices.
-                    Your browser provides the voices
-                    available on your device.
-
-                </p>
-
-            </article>
-
-
-
-            <article class="info-card">
-
-                <span class="info-icon">
-                    ✓
-                </span>
-
-
-                <h3>
-                    3,000-word protection
-                </h3>
-
-
-                <p>
-
-                    The app counts words live and
-                    prevents speech generation when
-                    your script exceeds the 3,000-word
-                    limit.
-
-                </p>
-
-            </article>
-
-
-
-            <article class="info-card">
-
-                <span class="info-icon">
-                    ↗
-                </span>
-
-
-                <h3>
-                    Private by default
-                </h3>
-
-
-                <p>
-
-                    This version uses the browser's
-                    Speech Synthesis API, so your
-                    script does not need to be uploaded
-                    to a server.
-
-                </p>
-
-            </article>
+            </div>
 
         </section>
-
-
-
-        <!-- =========================
-             FOOTER
-        ========================== -->
-
-        <footer>
-
-            <span>
-                © 2026 VoxForge TTS Studio
-            </span>
-
-
-            <span>
-                Browser-based text-to-speech
-            </span>
-
-        </footer>
 
     </main>
 
 
+    <footer>
+        <p>
+            © 2026 Lixvoices. All rights reserved.
+        </p>
+    </footer>
 
-    <!-- =========================
-         JAVASCRIPT
-    ========================== -->
 
     <script src="app.js"></script>
 
 </body>
-
-</html>
+        </html>
