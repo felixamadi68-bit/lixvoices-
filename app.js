@@ -1,641 +1,297 @@
-const MAX_WORDS = 3000;
+const scriptInput = document.getElementById("script");
+const voiceSelect = document.getElementById("voiceSelect");
 
-const synth = window.speechSynthesis;
+const speed = document.getElementById("speed");
+const pitch = document.getElementById("pitch");
+
+const speedValue = document.getElementById("speedValue");
+const pitchValue = document.getElementById("pitchValue");
+
+const wordCount = document.getElementById("wordCount");
+const charCount = document.getElementById("charCount");
+
+const voiceCount = document.getElementById("voiceCount");
+
+const speakBtn = document.getElementById("speakBtn");
+const pauseBtn = document.getElementById("pauseBtn");
+const stopBtn = document.getElementById("stopBtn");
+
+const clearBtn = document.getElementById("clearBtn");
+const status = document.getElementById("status");
+
+const themeBtn = document.getElementById("themeBtn");
 
 let voices = [];
-let selectedVoice = null;
-
-const $ = (id) => document.getElementById(id);
-
-const textInput = $("textInput");
-const wordCount = $("wordCount");
-const charCount = $("charCount");
-const warning = $("limitWarning");
-const voiceList = $("voiceList");
-const voiceSearch = $("voiceSearch");
-const languageFilter = $("languageFilter");
-const genderFilter = $("genderFilter");
 
 
-// ===============================
-// WORD & CHARACTER COUNTER
-// ===============================
-
-function countWords(text) {
-    return text.trim()
-        ? text.trim().split(/\s+/).length
-        : 0;
-}
-
-function updateCounts() {
-    const words = countWords(textInput.value);
-
-    wordCount.textContent = words.toLocaleString();
-
-    charCount.textContent =
-        `${textInput.value.length.toLocaleString()} characters`;
-
-    warning.classList.toggle(
-        "hidden",
-        words <= MAX_WORDS
-    );
-
-    wordCount.style.color =
-        words > MAX_WORDS
-            ? "#ff6b7a"
-            : "";
-}
-
-
-// ===============================
-// VOICE DETECTION
-// ===============================
-
-function looksFemale(name) {
-    return /female|woman|zira|samantha|victoria|susan|karen|moira|fiona|ava|aria|emma|sara|sally|joanna|olivia|allison|hazel|serena|linda|kate/i
-        .test(name);
-}
-
-function looksMale(name) {
-    return /male|man|david|daniel|alex|george|james|mark|fred|tom|john|michael|arthur|oliver|ryan/i
-        .test(name);
-}
-
-
-// ===============================
-// HTML SECURITY
-// ===============================
-
-function escapeHtml(value) {
-    return String(value).replace(
-        /[&<>"']/g,
-        (character) => ({
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#039;"
-        }[character])
-    );
-}
-
-
-// ===============================
-// LOAD BROWSER VOICES
-// ===============================
+// -----------------------------------
+// LOAD AVAILABLE VOICES
+// -----------------------------------
 
 function loadVoices() {
 
-    voices = synth
-        ? synth.getVoices()
-        : [];
+    voices = window.speechSynthesis.getVoices();
 
-    // Display number of available voices
-    $("voiceCount").textContent =
-        Math.min(2000, voices.length).toLocaleString();
+    voiceSelect.innerHTML = "";
 
-
-    // Create language list
-    const languages = [
-        ...new Set(
-            voices
-                .map(voice => voice.lang)
-                .filter(Boolean)
-        )
-    ].sort();
-
-
-    languageFilter.innerHTML =
-        `<option value="all">All languages</option>` +
-        languages
-            .map(
-                language =>
-                    `<option value="${escapeHtml(language)}">
-                        ${escapeHtml(language)}
-                    </option>`
-            )
-            .join("");
-
-
-    // Select first voice automatically
-    if (!selectedVoice && voices.length) {
-        selectedVoice = voices[0];
+    if (voices.length === 0) {
+        const option = document.createElement("option");
+        option.textContent = "No voices detected";
+        voiceSelect.appendChild(option);
+        voiceCount.textContent = "0";
+        return;
     }
 
+    voiceCount.textContent = voices.length;
 
-    renderVoices();
+    voices.forEach((voice, index) => {
 
-    updateSelectedVoice();
+        const option = document.createElement("option");
+
+        option.value = index;
+
+        option.textContent =
+            `${voice.name} — ${voice.lang}`;
+
+        voiceSelect.appendChild(option);
+    });
+
+
+    // Prefer an English voice if available
+
+    const englishIndex = voices.findIndex(
+        voice => voice.lang.toLowerCase().startsWith("en")
+    );
+
+    if (englishIndex !== -1) {
+        voiceSelect.value = englishIndex;
+    }
 }
 
 
-// ===============================
-// FILTER VOICES
-// ===============================
+// Some browsers load voices after the page loads.
+window.speechSynthesis.onvoiceschanged = loadVoices;
 
-function filteredVoices() {
-
-    const search =
-        voiceSearch.value
-            .toLowerCase()
-            .trim();
-
-    const language =
-        languageFilter.value;
-
-    const gender =
-        genderFilter.value;
+loadVoices();
 
 
-    return voices
-        .filter(voice => {
+// -----------------------------------
+// WORD COUNTER
+// -----------------------------------
 
-            const searchableText =
-                `${voice.name} ${voice.lang}`
-                    .toLowerCase();
+function updateCounters() {
 
+    const text = scriptInput.value.trim();
 
-            const matchesSearch =
-                !search ||
-                searchableText.includes(search);
+    const words = text === ""
+        ? []
+        : text.split(/\s+/);
 
+    const count = words.length;
 
-            const matchesLanguage =
-                language === "all" ||
-                voice.lang === language;
+    wordCount.textContent =
+        `${count.toLocaleString()} / 3,000 words`;
 
+    charCount.textContent =
+        `${scriptInput.value.length.toLocaleString()} characters`;
 
-            const matchesGender =
-                gender === "all" ||
-
-                (
-                    gender === "female" &&
-                    looksFemale(voice.name)
-                ) ||
-
-                (
-                    gender === "male" &&
-                    looksMale(voice.name)
-                );
-
-
-            return (
-                matchesSearch &&
-                matchesLanguage &&
-                matchesGender
-            );
-        })
-
-        // Maximum of 2,000 voices shown
-        .slice(0, 2000);
+    if (count > 3000) {
+        wordCount.style.color = "#ff6b6b";
+    } else {
+        wordCount.style.color = "";
+    }
 }
 
+scriptInput.addEventListener("input", updateCounters);
 
-// ===============================
-// DISPLAY VOICES
-// ===============================
-
-function renderVoices() {
-
-    const list = filteredVoices();
+updateCounters();
 
 
-    if (!list.length) {
+// -----------------------------------
+// SPEED
+// -----------------------------------
 
-        voiceList.innerHTML = `
-            <div class="empty-state">
-                No matching voices found on this device.
-            </div>
-        `;
+speed.addEventListener("input", () => {
+
+    speedValue.textContent =
+        `${Number(speed.value).toFixed(1)}x`;
+});
+
+
+// -----------------------------------
+// PITCH
+// -----------------------------------
+
+pitch.addEventListener("input", () => {
+
+    pitchValue.textContent =
+        Number(pitch.value).toFixed(1);
+});
+
+
+// -----------------------------------
+// GENERATE SPEECH
+// -----------------------------------
+
+speakBtn.addEventListener("click", () => {
+
+    const text = scriptInput.value.trim();
+
+    if (!text) {
+
+        status.textContent =
+            "Please enter some text first.";
 
         return;
     }
 
 
-    voiceList.innerHTML = list
-        .map(voice => {
+    const words = text.split(/\s+/);
 
-            const index =
-                voices.indexOf(voice);
+    if (words.length > 3000) {
 
-            return `
-                <div
-                    class="voice-item ${
-                        selectedVoice === voice
-                            ? "selected"
-                            : ""
-                    }"
-                    data-index="${index}"
-                >
-
-                    <div>
-
-                        <div class="voice-name">
-                            ${escapeHtml(voice.name)}
-                        </div>
-
-                        <div class="voice-lang">
-                            ${escapeHtml(voice.lang)}
-                        </div>
-
-                    </div>
-
-                    <span class="voice-tag">
-                        ${
-                            voice.localService
-                                ? "Local"
-                                : "Online"
-                        }
-                    </span>
-
-                </div>
-            `;
-        })
-        .join("");
-
-
-    // Voice selection
-    voiceList
-        .querySelectorAll(".voice-item")
-        .forEach(item => {
-
-            item.addEventListener(
-                "click",
-                () => {
-
-                    selectedVoice =
-                        voices[
-                            Number(
-                                item.dataset.index
-                            )
-                        ];
-
-
-                    renderVoices();
-
-                    updateSelectedVoice();
-
-                }
-            );
-
-        });
-}
-
-
-// ===============================
-// SELECTED VOICE DISPLAY
-// ===============================
-
-function updateSelectedVoice() {
-
-    $("selectedVoice").textContent =
-        selectedVoice
-            ? `${selectedVoice.name} · ${selectedVoice.lang}`
-            : "No voice detected";
-}
-
-
-// ===============================
-// SPEECH GENERATION
-// ===============================
-
-function speak(text) {
-
-    // Browser compatibility
-    if (!synth) {
-
-        alert(
-            "Speech synthesis is not supported by this browser."
-        );
+        status.textContent =
+            "Your script is over the 3,000-word limit.";
 
         return;
     }
 
 
-    // Empty text
-    if (!text.trim()) {
+    // Stop anything currently speaking
 
-        alert(
-            "Please enter some text first."
-        );
-
-        return;
-    }
+    window.speechSynthesis.cancel();
 
 
-    // 3,000 word limit
-    if (countWords(text) > MAX_WORDS) {
-
-        warning.classList.remove(
-            "hidden"
-        );
-
-        alert(
-            "Your script is over the 3,000-word limit."
-        );
-
-        return;
-    }
-
-
-    // Stop previous speech
-    synth.cancel();
-
-
-    // Create speech
     const utterance =
         new SpeechSynthesisUtterance(text);
 
 
-    // Apply selected voice
-    if (selectedVoice) {
+    const selectedIndex =
+        Number(voiceSelect.value);
+
+
+    if (voices[selectedIndex]) {
+
         utterance.voice =
-            selectedVoice;
+            voices[selectedIndex];
     }
 
 
-    // Speed
     utterance.rate =
-        Number($("rate").value);
+        Number(speed.value);
 
 
-    // Pitch
     utterance.pitch =
-        Number($("pitch").value);
+        Number(pitch.value);
 
 
-    // Volume
-    utterance.volume =
-        Number($("volume").value);
+    utterance.volume = 1;
 
 
-    // Start speech
-    synth.speak(utterance);
-}
+    utterance.onstart = () => {
+
+        status.textContent =
+            "Speaking your script...";
+    };
 
 
-// ===============================
-// GENERATE SPEECH BUTTON
-// ===============================
+    utterance.onend = () => {
 
-$("speakBtn").addEventListener(
-    "click",
-    () => {
-
-        speak(
-            textInput.value
-        );
-
-    }
-);
+        status.textContent =
+            "Speech generation finished.";
+    };
 
 
-// ===============================
-// PREVIEW BUTTON
-// ===============================
+    utterance.onerror = () => {
 
-$("previewBtn").addEventListener(
-    "click",
-    () => {
-
-        if (!textInput.value.trim()) {
-
-            alert(
-                "Please enter some text first."
-            );
-
-            return;
-        }
+        status.textContent =
+            "Something went wrong while generating speech.";
+    };
 
 
-        // Preview first 450 characters
-        const previewText =
-            textInput.value
-                .trim()
-                .slice(0, 450);
+    window.speechSynthesis.speak(utterance);
+});
 
 
-        speak(previewText);
-
-    }
-);
-
-
-// ===============================
+// -----------------------------------
 // PAUSE / RESUME
-// ===============================
+// -----------------------------------
 
-$("pauseBtn").addEventListener(
-    "click",
-    () => {
+pauseBtn.addEventListener("click", () => {
 
-        if (!synth) return;
+    if (window.speechSynthesis.speaking) {
 
+        if (window.speechSynthesis.paused) {
 
-        if (synth.paused) {
+            window.speechSynthesis.resume();
 
-            synth.resume();
+            pauseBtn.textContent =
+                "⏸ Pause";
+
+            status.textContent =
+                "Speech resumed.";
 
         } else {
 
-            synth.pause();
+            window.speechSynthesis.pause();
 
+            pauseBtn.textContent =
+                "▶ Resume";
+
+            status.textContent =
+                "Speech paused.";
         }
-
     }
-);
+});
 
 
-// ===============================
-// STOP SPEECH
-// ===============================
+// -----------------------------------
+// STOP
+// -----------------------------------
 
-$("stopBtn").addEventListener(
-    "click",
-    () => {
+stopBtn.addEventListener("click", () => {
 
-        if (synth) {
+    window.speechSynthesis.cancel();
 
-            synth.cancel();
+    pauseBtn.textContent =
+        "⏸ Pause";
 
-        }
+    status.textContent =
+        "Speech stopped.";
+});
 
+
+// -----------------------------------
+// CLEAR
+// -----------------------------------
+
+clearBtn.addEventListener("click", () => {
+
+    window.speechSynthesis.cancel();
+
+    scriptInput.value = "";
+
+    updateCounters();
+
+    status.textContent =
+        "Script cleared.";
+});
+
+
+// -----------------------------------
+// THEME
+// -----------------------------------
+
+themeBtn.addEventListener("click", () => {
+
+    document.body.classList.toggle("light-mode");
+
+    if (document.body.classList.contains("light-mode")) {
+
+        themeBtn.textContent = "☾";
+
+    } else {
+
+        themeBtn.textContent = "☼";
     }
-);
-
-
-// ===============================
-// TEXT INPUT
-// ===============================
-
-textInput.addEventListener(
-    "input",
-    updateCounts
-);
-
-
-// ===============================
-// SAMPLE TEXT
-// ===============================
-
-$("sampleBtn").addEventListener(
-    "click",
-    () => {
-
-        textInput.value =
-            "Welcome to VoxForge, a modern text-to-speech studio designed for creators, students, developers, and storytellers. Choose a voice, adjust the speed and pitch, then generate a natural spoken preview directly in your browser. Your script can contain up to 3,000 words per generation.";
-
-        updateCounts();
-
-    }
-);
-
-
-// ===============================
-// CLEAR TEXT
-// ===============================
-
-$("clearBtn").addEventListener(
-    "click",
-    () => {
-
-        textInput.value = "";
-
-        updateCounts();
-
-        textInput.focus();
-
-    }
-);
-
-
-// ===============================
-// VOICE SEARCH
-// ===============================
-
-voiceSearch.addEventListener(
-    "input",
-    renderVoices
-);
-
-
-// ===============================
-// LANGUAGE FILTER
-// ===============================
-
-languageFilter.addEventListener(
-    "change",
-    renderVoices
-);
-
-
-// ===============================
-// GENDER FILTER
-// ===============================
-
-genderFilter.addEventListener(
-    "change",
-    renderVoices
-);
-
-
-// ===============================
-// SPEED / PITCH / VOLUME
-// ===============================
-
-[
-    [
-        "rate",
-        "rateValue",
-        value =>
-            `${Number(value).toFixed(1)}×`
-    ],
-
-    [
-        "pitch",
-        "pitchValue",
-        value =>
-            Number(value).toFixed(1)
-    ],
-
-    [
-        "volume",
-        "volumeValue",
-        value =>
-            `${Math.round(
-                Number(value) * 100
-            )}%`
-    ]
-
-].forEach(
-    ([inputId, outputId, formatter]) => {
-
-        $(inputId).addEventListener(
-            "input",
-            event => {
-
-                $(outputId).textContent =
-                    formatter(
-                        event.target.value
-                    );
-
-            }
-        );
-
-    }
-);
-
-
-// ===============================
-// DARK / LIGHT MODE
-// ===============================
-
-$("themeBtn").addEventListener(
-    "click",
-    () => {
-
-        document.body.classList.toggle(
-            "light"
-        );
-
-
-        $("themeBtn").textContent =
-            document.body.classList.contains(
-                "light"
-            )
-                ? "☾"
-                : "☼";
-
-    }
-);
-
-
-// ===============================
-// INITIALIZE VOICES
-// ===============================
-
-if (synth) {
-
-    loadVoices();
-
-
-    // Some browsers load voices asynchronously
-    synth.onvoiceschanged =
-        loadVoices;
-
-} else {
-
-    voiceList.innerHTML = `
-        <div class="empty-state">
-            Speech synthesis is not supported
-            in this browser.
-        </div>
-    `;
-}
-
-
-// ===============================
-// INITIAL COUNTERS
-// ===============================
-
-updateCounts();
+});
