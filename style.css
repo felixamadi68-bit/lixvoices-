@@ -238,6 +238,14 @@ select {
     margin-top: 20px;
 }
 
+.volume-control {
+    margin-top: 20px;
+}
+
+.volume-control input[type="range"] {
+    margin-top: 5px;
+}
+
 input[type="range"] {
     width: 100%;
     accent-color: var(--purple);
